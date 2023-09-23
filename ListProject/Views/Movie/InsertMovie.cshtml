@@ -1,0 +1,159 @@
+﻿@{
+    Layout = "_Layout";
+}
+@model List<Category>;
+
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            <div class="card box-shadow-2 radius-1">
+                <div class="card-body" style="padding-top:35px;">
+                    <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom:35px">
+                        <hr style="width: 40%;">
+                        <h4 style="margin: 0 20px;"><b>Insert Movie</b></h4>
+                        <hr style="width: 40%;">
+                    </div>      
+                    <div class="row">
+                        <div class="col-5" style="margin-left:50px; margin-bottom:20px">
+                            <label for="movieImage">Poster</label>
+                            <input type="file" id="movieImage" accept="image/*" class="form-control" />
+                            <span id="nameAlert" style="display:none">Please upload a poster.</span>
+                            <br />
+                            <label for="movieName">Name</label>
+                            <input class="form-control" id="movieName" />
+                            <span id="nameAlert" style="display:none">Please insert a name.</span>
+                            <br />
+                            <label for="releaseYear">Release Year</label>
+                            <input class="form-control" id="releaseYear" />
+                            <span id="yearAlert" style="display:none">Please insert a year.</span>
+                            <br />
+                            <label for="movieLength">Length</label>
+                            <input class="form-control" id="movieLength" />
+                            <span id="lengthAlert" style="display:none">Please insert length.</span>
+                            <br />
+                            <label for="movieScore">IMDb Score</label>
+                            <input class="form-control" id="movieScore" />
+                            <span id="scoreAlert" style="display:none">Please insert a score.</span>
+                            <br />
+                            <label for="movieCategory">Category</label>
+                            <select id="movieCategory" class="form-control">
+                                <option value="" selected disabled>Select..</option>
+                                @foreach(var category in Model)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                            <span id="categoryAlert" style="display:none">Please select a category.</span>
+                            <br />
+                            <button id="movieInsert" class="btn btn-primary">Insert</button>
+                        </div>
+                        <div class="col-7"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('#movieInsert').on('click', function () {
+
+            var movieImage = document.getElementById('movieImage').files[0];
+            var movieName = $('#movieName').val();
+            var releaseYear = $('#releaseYear').val();
+            var movieLength = $('#movieLength').val();
+            var movieScore = $('#movieScore').val();
+            var movieCategory = $('#movieCategory').val();
+
+            var formData = new FormData();
+            formData.append('name', movieName);
+            formData.append('year', releaseYear);
+            formData.append('length', movieLength);
+            formData.append('score', movieScore);
+            formData.append('categoryId', movieCategory);
+            formData.append('image', movieImage);
+
+            if ((movieName == null || movieName == "") || (releaseYear == null || releaseYear == "") || (movieLength == null || movieLength == "") || (movieScore == null || movieScore == "") || (movieCategory == null || movieCategory == "") || (movieImage == null || movieImage == "")) {
+                if (movieName == null || movieName == "") {
+                    $('#nameAlert').show();
+                }
+                else{
+                    $('#nameAlert').hide();
+                }
+
+                if (releaseYear == null || releaseYear == "") {
+                    $('#yearAlert').show();
+                }
+                else{
+                    $('#yearAlert').hide();
+                }
+
+                if (movieLength == null || movieLength == "") {
+                    $('#lengthAlert').show();
+                }
+                else {
+                    $('#lengthAlert').hide();
+                }
+
+                if (movieScore == null || movieScore == "") {
+                    $('#scoreAlert').show();
+                }
+                else{
+                    $('#scoreAlert').hide();
+                }
+
+                if (movieCategory == null || movieCategory == "") {
+                    $('#categoryAlert').show();
+                }
+                else{
+                    $('#categoryAlert').hide();
+                }
+
+                if (movieImage == null || movieImage == "") {
+                    $('#imageAlert').show();
+                }
+                else{
+                    $('#imageAlert').hide();
+                }
+            }          
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "/Movie/InsertMovie",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (res) {
+                        if (res.isSuccess == true) {
+                            swal({
+                                title: res.message,
+                                icon: "success",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.href = "/Movie/Index";
+                            }, 1200);
+                        }
+                        else if (res.isSuccess == false) {
+                            swal({
+                                title: res.message,
+                                icon: "error",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+    });
+</script>

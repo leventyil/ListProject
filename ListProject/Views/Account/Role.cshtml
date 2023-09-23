@@ -1,0 +1,163 @@
+﻿@{
+    Layout = "_Layout";
+}
+@model ListProject.ViewModels.RoleViewModel;
+
+<style>
+    .table-custom td, .table-custom th {
+        vertical-align: middle;
+    }
+</style>
+
+<span id="roleName" hidden>@Model.Role.Name</span>
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            <div class="card box-shadow-2 radius-1">
+                <div class="card-body" style="padding-top:35px;">
+                    <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom:35px">
+                        <hr style="width: 45%;">
+                        <h4 style="margin: 0 20px;"><b>Users in this Role: @Model.Role.Name</b></h4>
+                        <hr style="width: 45%;">
+                    </div>
+                    <div class="row">
+                        <div class="col-3"></div>
+                        <div class="col-6 table-responsive">
+                            <table class="table table-bordered table-condensed table-custom" style="table-layout:fixed">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50%">User</th>
+                                        <th style="width:50%">
+                                            <select id="addUser" class="form-control">
+                                                <option value="" selected disabled>Add user to this role</option>
+                                                @foreach(var user in Model.AllUsers)
+                                                {
+                                                    <option value="@user.Email">@user.Email</option>
+                                                }
+                                            </select>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        if(Model.Users != null)
+                                        {
+                                                        @foreach (var user in Model.Users)
+                                            {
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="userEmailSpan">@user.Email</span>
+                                                                </td>
+                                                                <td class="Remove">
+                                                                    <button class="btn btn-danger Remove">Remove from this role</button>
+                                                                </td>
+                                                            </tr>
+                                            }
+                                        }
+                                    }
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.Remove').on('click', function () {
+            var row = $(this).parents('tr').addClass(".Remove");
+
+            var userName = row.find('.userEmailSpan').text();
+            var role = $('#roleName').text();
+
+            swal({
+                text: "Are you sure you want to remove this user's role?",
+                icon: "warning",
+                buttons: true,
+            }).then((result) => {
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Account/RemoveFromRole",
+                        data: { userName: userName, roleName: role },
+                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                        success: function (res) {
+                            if (res.isSuccess == true) {
+                                swal({
+                                    title: res.message,
+                                    icon: "success",
+                                    text: " ",
+                                    timer: 1000,
+                                    buttons: false
+                                });
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1200);
+                            }
+                            else if (res.isSuccess == false) {
+                                swal({
+                                    title: res.message,
+                                    icon: "error",
+                                    text: " ",
+                                    timer: 1000,
+                                    buttons: false
+                                });
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1200);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        $('#addUser').on('change', function () {
+            var selectedEmail = $(this).val();
+            var role = $('#roleName').text();
+
+            if (selectedEmail) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/AddToRole",
+                    data: { email: selectedEmail, roleName: role },
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (res) {
+                        if (res.isSuccess == true) {
+                            swal({
+                                title: res.message,
+                                icon: "success",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                        else if (res.isSuccess == false) {
+                            swal({
+                                title: res.message,
+                                icon: "error",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                    }
+                });
+            }
+        });
+    }); 
+</script>

@@ -1,0 +1,280 @@
+﻿@{
+    Layout = "_Layout";
+}
+@using ListProject.Models.User;
+﻿@using Microsoft.AspNetCore.Identity
+@model ListProject.ViewModels.MovieViewModel
+@inject UserManager<User> UserManager
+@inject SignInManager<User> SignInManager
+
+
+<style>
+    .table-custom td, .table-custom th {
+        vertical-align: middle;
+    }
+
+    .movie-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .movie-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        margin: 10px;
+        padding: 10px;
+        text-align: center;
+        width: 250px;
+        height: 550px;
+        background-color: #f0f8ff;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .movie-info {
+        height: 60px;
+        overflow: hidden;
+    }
+
+        .movie-info h3 {
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+    .movie-poster {
+        width: 100%;
+        height: 350px;
+        margin-top: 10px;
+    }
+
+    .movie-info h3.too-long {
+        font-size: 13px;
+    }
+
+    .movie-actions {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        margin-top: auto;
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .movie-actions button {
+        width: calc(50% - 5px);
+        margin-top: 5px;
+    }
+
+    .movie-actions .deleteMovie {
+        margin-top: 10px;
+    }
+
+    .btn {
+        margin: 5px;
+    }
+
+    .btn-info {
+        color: white !important;
+    }
+
+    .gray-button {
+        background-color: #888 !important;
+        color: #ededed !important;
+    }
+</style>
+
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            <div class="card box-shadow-2 radius-1">
+                <div class="card-body" style="padding-top:35px;">
+                    <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom:35px">
+                        <hr style="width: 45%;">
+                        <h4 style="margin: 0 20px;"><b>Movies</b></h4>
+                        <hr style="width: 45%;">
+                    </div>
+                    <div>
+                        @{
+                            var user = await UserManager.GetUserAsync(User);
+                            if (user != null)
+                            {
+                                bool isUserInAdminRole = await UserManager.IsInRoleAsync(user, "admin");
+                                if (isUserInAdminRole)
+                                {
+                                    <a href="/Movie/InsertMovie" class="btn btn-primary">Insert Movie</a>
+                                }
+                            }
+                        }
+                    </div>    
+                    <div id="movies" class="movie-container">
+                        @foreach (var movie in Model.Movies)
+                        {
+                            <div class="movie-card">
+                                <div class="movie-info">
+                                    @{
+                                        var titleClass = movie.Name.Length > 13 ? "too-long" : "";
+                                    }
+                                    <h3 class="@titleClass"><b>@movie.Name</b></h3>
+                                    <span>@movie.Year</span>
+                                    <span>IMDb: @movie.Score</span>
+                                </div>
+                                <img src="data:image/jpeg;base64,@Convert.ToBase64String(movie.ImageData)" alt="@movie.Name" class="movie-poster" />
+                                <div class="movie-actions">
+                                    <div class="button-container">
+                                        @if (SignInManager.IsSignedIn(User))
+                                        {
+                                            var movieInWantToWatchList = false;
+                                            var movieInWatchedList = false;
+                                            if(Model.WantToWatchList != null && Model.WantToWatchList.Count != 0)
+                                            {
+                                                movieInWantToWatchList = Model.WantToWatchList.Any(w => w.MovieId == movie.Id);
+                                            }
+                                            if (Model.WatchedList != null && Model.WatchedList.Count != 0)
+                                            {
+                                                movieInWatchedList = Model.WatchedList.Any(w => w.MovieId == movie.Id);
+                                            }
+
+                                            <button class="btn btn-sm addToWantToWatchList @(movieInWantToWatchList ? "gray-button disabled" : "btn-info")" data-movie-id="@movie.Id">Want to Watch</button>
+                                            <button class="btn btn-sm addToWatchedList @(movieInWatchedList ? "gray-button disabled" : "btn-primary")" data-movie-id="@movie.Id">Watched</button>
+                                        }                                      
+                                    </div>
+                                    @{
+                                        if (user != null)
+                                        {
+                                            bool isUserInAdminRole = await UserManager.IsInRoleAsync(user, "admin");
+                                            if (isUserInAdminRole)
+                                            {
+                                                <div class="text-center mt-auto">
+                                                    <button class="btn btn-danger deleteMovie" data-movie-id="@movie.Id">Delete</button>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('.deleteMovie').on('click', function () {
+
+            var movieId = $(this).data('movie-id');
+
+            $.ajax({
+                type: "POST",
+                url: "/Movie/DeleteMovie",
+                data: { movieId: movieId },
+                success: function (res) {
+                    if (res.isSuccess == true) {
+                        swal({
+                            title: res.message,
+                            icon: "success",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1200);
+                    }
+                    else if (res.isSuccess == false) {
+                        swal({
+                            title: res.message,
+                            icon: "error",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                    }
+                }
+            });
+        });
+
+        $('.addToWantToWatchList').on('click', function () {
+
+            var movieId = $(this).data('movie-id');
+
+            $.ajax({
+                type: "POST",
+                url: "/Movie/AddToWantToWatchList",
+                data: { movieId: movieId },
+                success: function (res) {
+                    if (res.isSuccess == true) {
+                        swal({
+                            title: res.message,
+                            icon: "success",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1200);
+                    }
+                    else if (res.isSuccess == false) {
+                        swal({
+                            title: res.message,
+                            icon: "error",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                    }
+                }
+            });
+        });
+
+        $('.addToWatchedList').on('click', function () {
+
+            var movieId = $(this).data('movie-id');
+
+            $.ajax({
+                type: "POST",
+                url: "/Movie/AddToWatchedList",
+                data: { movieId: movieId },
+                success: function (res) {
+                    if (res.isSuccess == true) {
+                        swal({
+                            title: res.message,
+                            icon: "success",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1200);
+                    }
+                    else if (res.isSuccess == false) {
+                        swal({
+                            title: res.message,
+                            icon: "error",
+                            text: " ",
+                            timer: 1000,
+                            buttons: false
+                        });
+                    }
+                }
+            });
+        });
+
+    });
+</script>

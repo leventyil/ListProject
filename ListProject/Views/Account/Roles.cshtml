@@ -1,0 +1,277 @@
+﻿@{
+    Layout = "_Layout";
+}
+@model List<ListProject.Models.User.Role>
+
+<style>
+    .table-custom td, .table-custom th {
+        vertical-align: middle;
+    }
+
+    .btn-info {
+        color: white !important; /* Set text color to white */
+    }
+</style>
+
+<div class="app-content content">
+    <div class="content-wrapper">
+        <div class="content-body">
+            <div class="card box-shadow-2 radius-1">
+                <div class="card-body" style="padding-top:35px;">
+                    <div style="text-align: center; display: flex; align-items: center; justify-content: center; margin-bottom:35px">
+                        <hr style="width: 45%;">
+                        <h4 style="margin: 0 20px;"><b>Roles</b></h4>
+                        <hr style="width: 45%;">
+                    </div>
+                    <div class="row">
+                        <div class="col-3"></div>
+                        <div class="col-6 table-responsive">
+                            <table class="table table-bordered table-condensed table-custom" style="table-layout:fixed">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50%">Role Name</th>
+                                        <th style="width:50%">
+                                            <button class="btn btn-success" id="addRoleButton">Add Role</button>
+                                            <button class="btn btn-danger" id="cancelAddRoleButton" style="display:none">Cancel</button>
+                                        </th>
+                                    </tr>
+                                    <tr id="addRoleRow" style="display:none">
+                                        <th><input id="roleName" type="text" class="form-control" placeholder="Role Name"></th>
+                                        <th>
+                                            <button class="btn btn-success Add">Add</button>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var role in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <input type="text" class="form-control updateRoleName" value="@role.Name" style="display:none" />
+                                                <span class="roleNameSpan">@role.Name</span>
+                                            </td>
+                                            <td class="EditDelete">
+                                                <button class="btn btn-info Users">Users in this role</button>
+                                                <button class="btn btn-primary Edit">Edit</button>                                              
+                                                <button class="btn btn-danger Delete">Delete</button>
+                                            </td>
+                                            <td class="UpdateCancel" style="display:none">
+                                                <button class="btn btn-success Update">Update</button>
+                                                <button class="btn btn-danger CancelEdit">Cancel Edit</button>
+                                            </td>
+                                        </tr>
+                                    }        
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        
+        $('#addRoleButton').click(function () {
+            
+            $('#addRoleRow').show();
+            $('#addRoleButton').hide();
+            $('#cancelAddRoleButton').show();
+        });
+
+        
+        $('thead').on('click', '#cancelAddRoleButton', function () {
+            $('#addRoleRow').hide();
+            $('#addRoleButton').show();
+            $('#cancelAddRoleButton').hide();
+        });
+
+        $('.Edit').on('click', function () {
+            var row = $(this).parents('tr').addClass(".Edit");
+
+            row.find('.updateRoleName').show();
+            row.find('.roleNameSpan').hide();
+            row.find('.EditDelete').hide();
+            row.find('.UpdateCancel').show();
+        });
+
+        $('.CancelEdit').on('click', function () {
+            var row = $(this).parents('tr').addClass(".CancelEdit");
+
+            row.find('.updateRoleName').hide();
+            row.find('.roleNameSpan').show();
+            row.find('.EditDelete').show();
+            row.find('.UpdateCancel').hide();
+        });
+
+        $('.Add').on('click', function () {
+
+            var roleName = $('#roleName').val();
+
+            var model = {};
+
+            model.name = roleName;
+
+            if (roleName == null || roleName == "") {
+                swal({
+                    title: "Role name cannot be empty.",
+                    icon: "warning",
+                    text: " ",
+                    timer: 1000,
+                    buttons: false
+                });
+            }
+            else{
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/AddRole",
+                    data: model,
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (res) {
+                        if (res.isSuccess == true) {
+                            swal({
+                                title: res.message,
+                                icon: "success",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                        else if (res.isSuccess == false) {
+                            swal({
+                                title: res.message,
+                                icon: "error",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                    }
+                });
+            }          
+        });
+
+        $('.Update').on('click', function () {
+            var row = $(this).parents('tr').addClass(".Update");
+
+            var oldRoleName = row.find('.roleNameSpan').text();
+            var newRoleName = row.find('.updateRoleName').val();
+
+
+            if (newRoleName == null || newRoleName == "") {
+                swal({
+                    title: "Role name cannot be empty.",
+                    icon: "warning",
+                    text: " ",
+                    timer: 1000,
+                    buttons: false
+                });
+            }
+            else {
+                $.ajax({
+                    type: "POST",
+                    url: "/Account/UpdateRole",
+                    data: { oldRoleName: oldRoleName, newRoleName: newRoleName },
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (res) {
+                        if (res.isSuccess == true) {
+                            swal({
+                                title: res.message,
+                                icon: "success",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                        else if (res.isSuccess == false) {
+                            swal({
+                                title: res.message,
+                                icon: "error",
+                                text: " ",
+                                timer: 1000,
+                                buttons: false
+                            });
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1200);
+                        }
+                    }
+                });
+            }         
+        });
+
+        $('.Delete').on('click', function () {
+            var row = $(this).parents('tr').addClass(".Delete");
+
+            var roleName = row.find('.roleNameSpan').text();
+
+            var model = {};
+
+            model.name = roleName;
+
+            swal({
+                text: "Are you sure you want to delete this role?",
+                icon: "warning",
+                buttons: true,
+            }).then((result) => {
+                if (result) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Account/DeleteRole",
+                        data: model,
+                        contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                        success: function (res) {
+                            if (res.isSuccess == true) {
+                                swal({
+                                    title: res.message,
+                                    icon: "success",
+                                    text: " ",
+                                    timer: 1000,
+                                    buttons: false
+                                });
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1200);
+                            }
+                            else if (res.isSuccess == false) {
+                                swal({
+                                    title: res.message,
+                                    icon: "error",
+                                    text: " ",
+                                    timer: 1000,
+                                    buttons: false
+                                });
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1200);
+                            }
+                        }
+                    });
+                }
+            });                   
+        });
+
+        $('.Users').on('click', function () {
+            var row = $(this).parents('tr').addClass(".Users");
+
+            var roleName = row.find('.roleNameSpan').text();
+
+            window.location.href = '/Account/Role?roleName=' + roleName;
+        });
+    });
+</script>
