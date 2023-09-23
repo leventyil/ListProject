@@ -3,7 +3,8 @@ Filmleri üye olan veya olmayan herkes görüntüleyebiliyor. Fakat üye olmayan
 Sadece üye olanlar listelerine ekleyebiliyorlar. Admin ise ek olarak filmi silebiliyor.
 Eğer film zaten herhangi bir listedeyse o listenin butonu inaktif oluyor. 
 
-<img src="https://i.imgur.com/z3qGqrp.jpg" width="600" height="500">
+<img src="https://imgur.com/a/z3qGqrp" width="600" height="500">
+![a](https://imgur.com/a/z3qGqrp)
 
 # Rol Sayfası
 Kullanıcı ve rol işlemleri için .NET Core Identity kütüphanesini kullandım. 
