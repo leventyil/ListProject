@@ -40,4 +40,5 @@ Form tamamen doldurulmadan ilerleme yapılmıyor.
 # Database Tablolar
 
 ![Database Tables](https://github.com/leventyil/ListProject/assets/76431502/7166ac84-1845-4b22-bf4f-2d4faf1dd118)
+![Movies Table](https://github.com/leventyil/ListProject/assets/76431502/3cc9c5f2-42f5-41c8-8614-032e16e49089)
 
